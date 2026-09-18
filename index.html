@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D Room Tour - Final Fixed Controls & Reset</title>
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a24;
+            touch-action: none;
+            font-family: Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            display: block;
+        }
+        #instructions {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 8px 12px;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 10;
+            font-size: 11px;
+        }
+        #resetBtn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(230, 81, 0, 0.85);
+            color: #ffffff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 20;
+        }
+
+        /* STYLING JOYSTICK HTML OVERLAY */
+        .joystick-base {
+            position: absolute;
+            bottom: 30px;
+            width: 110px;
+            height: 110px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            touch-action: none;
+            z-index: 999;
+            box-sizing: border-box;
+            display: none;
+        }
+        #leftJoystickBase { left: 20px; }
+        #rightJoystickBase { right: 20px; }
+        .joystick-stick {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 46px;
+            height: 46px;
+            margin-top: -23px;
+            margin-left: -23px;
+            border-radius: 50%;
+            touch-action: none;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        #leftStick { background: #FF9800; border: 2px solid #E65100; }
+        #rightStick { background: #2196F3; border: 2px solid #0D47A1; }
+    </style>
+    <!-- Babylon.js CDN -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+</head>
+<body>
+
+    <div id="instructions">
+        <b>Kontrol:</b><br>
+        • <b>Laptop:</b> Klik Layar $\rightarrow$ WASD/Panah & Drag Mouse<br>
+        • <b>HP:</b> Dual Joystick On-Screen
+    </div>
+
+    <button id="resetBtn">🔄 Reset</button>
+    
+    <div id="leftJoystickBase" class="joystick-base">
+        <div id="leftStick" class="joystick-stick"></div>
+    </div>
+    <div id="rightJoystickBase" class="joystick-base">
+        <div id="rightStick" class="joystick-stick"></div>
+    </div>
+
+    <canvas id="renderCanvas" tabindex="1"></canvas>
+
+    <script>
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+
+        let camera;
+        const initialCameraPosition = new BABYLON.Vector3(0, 1.7, 0);
+
+        let moveInput = { x: 0, y: 0 };
+        let lookInput = { x: 0, y: 0 };
+
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        const createScene = function () {
+            const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.15);
+
+            // 1. AKTIFKAN TABRAKAN SCENE
+            scene.collisionsEnabled = true;
+
+            // 2. SETUP KAMERA
+            camera = new BABYLON.UniversalCamera("camera", initialCameraPosition.clone(), scene);
+            camera.speed = 0.15;
+            camera.angularSensibility = 2000;
+            
+            // Konfigurasi Fisik Kamera
+            camera.checkCollisions = true;
+            camera.applyGravity = false;
+            camera.ellipsoid = new BABYLON.Vector3(0.4, 0.85, 0.4);
+
+            // Controls Keyboard Laptop
+            camera.attachControl(canvas, true);
+            camera.keysUp = [87, 38];    // W, Panah Atas
+            camera.keysDown = [83, 40];  // S, Panah Bawah
+            camera.keysLeft = [65, 37];  // A, Panah Kiri
+            camera.keysRight = [68, 39]; // D, Panah Kanan
+
+            canvas.addEventListener("click", function() {
+                canvas.focus();
+            });
+
+            // Lighting
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 1.2;
+
+            // 3. LOAD MODEL GLB & DETEKSI MESH COL
+            BABYLON.SceneLoader.Append("./", "1_LOW_RESIZED.glb", scene, function (loadedScene) {
+                console.log("Model GLB Berhasil Dimuat!");
+
+                loadedScene.meshes.forEach(function (mesh) {
+                    if (mesh.getTotalVertices && mesh.getTotalVertices() > 0) {
+                        if (mesh.name.toUpperCase().includes("COL")) {
+                            mesh.checkCollisions = true;
+                            mesh.visibility = 0; // Transparan 100% (Ubah ke 0.5 jika ingin tes fisik kotaknya)
+                        } else {
+                            mesh.checkCollisions = false;
+                        }
+                    }
+                });
+            });
+
+            // 4. LOGIKA PERGERAKAN TOUCH JOYSTICK HP (SAMA DENGAN LAPTOP)
+            scene.onBeforeRenderObservable.add(function () {
+                if (isTouchDevice) {
+                    if (moveInput.x !== 0 || moveInput.y !== 0) {
+                        let moveSpeed = 0.02;
+                        let forward = camera.getDirection(BABYLON.Axis.Z);
+                        let right = camera.getDirection(BABYLON.Axis.X);
+                        
+                        forward.y = 0; 
+                        right.y = 0;
+                        forward.normalize(); 
+                        right.normalize();
+
+                        let moveVector = forward.scale(moveInput.y * moveSpeed).add(right.scale(moveInput.x * moveSpeed));
+                        
+                        // Menyalurkan pergerakan ke sistem bawaan kamera agar collision aktif & tidak stuck
+                        camera.cameraDirection.addInPlace(moveVector);
+                    }
+
+                    if (lookInput.x !== 0 || lookInput.y !== 0) {
+                        let rotationSpeed = 0.015;
+                        camera.rotation.y += lookInput.x * rotationSpeed;
+                        camera.rotation.x -= lookInput.y * rotationSpeed;
+
+                        let maxAngle = Math.PI / 2.4;
+                        camera.rotation.x = Math.max(-maxAngle, Math.min(maxAngle, camera.rotation.x));
+                    }
+                }
+            });
+
+            return scene;
+        };
+
+        const scene = createScene();
+
+        // SETUP JOYSTICK HP
+        if (isTouchDevice) {
+            document.getElementById("leftJoystickBase").style.display = "block";
+            document.getElementById("rightJoystickBase").style.display = "block";
+
+            function setupHTMLJoystick(baseId, stickId, outputObj) {
+                const base = document.getElementById(baseId);
+                const stick = document.getElementById(stickId);
+                const maxRadius = 35;
+                let touchId = null;
+
+                base.addEventListener("touchstart", function (e) {
+                    e.preventDefault();
+                    if (touchId === null) {
+                        const touch = e.changedTouches[0];
+                        touchId = touch.identifier;
+                        updateStickPosition(touch);
+                    }
+                }, { passive: false });
+
+                window.addEventListener("touchmove", function (e) {
+                    if (touchId !== null) {
+                        for (let i = 0; i < e.changedTouches.length; i++) {
+                            if (e.changedTouches[i].identifier === touchId) {
+                                updateStickPosition(e.changedTouches[i]);
+                                e.preventDefault();
+                                break;
+                            }
+                        }
+                    }
+                }, { passive: false });
+
+                function resetStick() {
+                    touchId = null;
+                    stick.style.transform = `translate(0px, 0px)`;
+                    outputObj.x = 0;
+                    outputObj.y = 0;
+                }
+
+                window.addEventListener("touchend", function (e) {
+                    if (touchId !== null) {
+                        for (let i = 0; i < e.changedTouches.length; i++) {
+                            if (e.changedTouches[i].identifier === touchId) {
+                                resetStick();
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                window.addEventListener("touchcancel", resetStick);
+
+                function updateStickPosition(touch) {
+                    const rect = base.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+
+                    let deltaX = touch.clientX - centerX;
+                    let deltaY = touch.clientY - centerY;
+                    let dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+                    if (dist > maxRadius) {
+                        deltaX = (deltaX / dist) * maxRadius;
+                        deltaY = (deltaY / dist) * maxRadius;
+                    }
+
+                    stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                    outputObj.x = deltaX / maxRadius;
+                    outputObj.y = -(deltaY / maxRadius);
+                }
+            }
+
+            setupHTMLJoystick("leftJoystickBase", "leftStick", moveInput);
+            setupHTMLJoystick("rightJoystickBase", "rightStick", lookInput);
+        }
+
+        // RESET BUTTON (DI-REWRITE TOTAL AGAR BISA MEMBIFORKASI TOTAL INERTIA/MOMENTUM)
+        document.getElementById("resetBtn").addEventListener("click", function() {
+            // 1. Hentikan sisa momentum pergerakan & rotasi bawaan engine
+            camera.cameraDirection.set(0, 0, 0);
+            camera.cameraRotation.set(0, 0);
+
+            // 2. Kembalikan koordinat posisi & arah pandang ke awal
+            camera.position.copyFrom(initialCameraPosition);
+            camera.rotation.set(0, 0, 0);
+
+            // 3. Bersihkan nilai input pergerakan joystick HP
+            moveInput.x = 0;
+            moveInput.y = 0;
+            lookInput.x = 0;
+            lookInput.y = 0;
+        });
+
+        engine.runRenderLoop(function () {
+            scene.render();
+        });
+
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
