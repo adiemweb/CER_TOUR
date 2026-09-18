@@ -172,7 +172,7 @@
             scene.onBeforeRenderObservable.add(function () {
                 if (isTouchDevice) {
                     if (moveInput.x !== 0 || moveInput.y !== 0) {
-                        let moveSpeed = 0.02;
+                        let moveSpeed = 0.008;
                         let forward = camera.getDirection(BABYLON.Axis.Z);
                         let right = camera.getDirection(BABYLON.Axis.X);
                         
