@@ -85,6 +85,9 @@
     <!-- Babylon.js CDN -->
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>[cite: 2]
+<!-- Tambahkan ini agar Babylon bisa membaca file Draco GLB -->
+<script src="https://preview.babylonjs.com/draco_wasm_wrapper.js"></script>
 </head>
 <body>
 
@@ -110,7 +113,7 @@
         const engine = new BABYLON.Engine(canvas, true);
 
         let camera;
-        const initialCameraPosition = new BABYLON.Vector3(0, 1.5, 0);
+        const initialCameraPosition = new BABYLON.Vector3(0, 3, 0);
         let moveInput = { x: 0, y: 0 };
         let lookInput = { x: 0, y: 0 };
 
