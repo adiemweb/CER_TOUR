@@ -90,7 +90,7 @@
 
     <div id="instructions">
         <b>Kontrol:</b><br>
-        • <b>Laptop:</b> Klik Layar &rightarrow; WASD/Panah & Drag Mouse<br>
+        • <b>Laptop:</b> Klik Layar $\rightarrow$ WASD/Panah & Drag Mouse<br>
         • <b>HP:</b> Dual Joystick On-Screen
     </div>
 
@@ -129,8 +129,7 @@
             camera.speed = 0.15;
             camera.angularSensibility = 2000;
             
-            // FIX KETEMBUSAN: Batas pandang terdekat kamera (5cm) & ukuran fisik kamera
-            camera.minZ = 0.05;
+            // Konfigurasi Fisik Kamera
             camera.checkCollisions = true;
             camera.applyGravity = false;
             camera.ellipsoid = new BABYLON.Vector3(0.4, 0.85, 0.4);
@@ -156,11 +155,11 @@
 
                 loadedScene.meshes.forEach(function (mesh) {
                     if (mesh.getTotalVertices && mesh.getTotalVertices() > 0) {
-                        // FIX KETEMBUSAN: Aktifkan tabrakan fisik untuk SEMUA objek (Rack & Ruangan)
-                        mesh.checkCollisions = true;
-
                         if (mesh.name.toUpperCase().includes("COL")) {
-                            mesh.visibility = 1; // Ubah ke 1 agar warna dinding kubus tetap kelihatan
+                            mesh.checkCollisions = true;
+                            mesh.visibility = 0; // Transparan 100% (Ubah ke 0.5 jika ingin tes fisik kotaknya)
+                        } else {
+                            mesh.checkCollisions = false;
                         }
                     }
                 });
