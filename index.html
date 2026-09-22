@@ -49,7 +49,7 @@
 </head>
 <body>
 
-  <div id="loading">Memuat Model dari Google Drive...</div>
+  <div id="loading">Memuat Model 3DGS...</div>
 
   <div class="controls-card">
     <b>Kontrol Navigasi</b><br>
@@ -60,12 +60,8 @@
   <script type="module">
     import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splat-3d@0.4.2/build/gaussian-splats-3d.module.js';
 
-    // Direct bypass link Google Drive untuk file besar (>25MB)
-    const gdriveId = '1MFP3MjVPha60EatUXwEjVG43YyPXwm_o';
-    const directGdriveUrl = `https://docs.google.com/uc?export=download&id=${gdriveId}&confirm=t`;
-    
-    // Melewatkan ke CORS proxy khusus data stream
-    const finalUrl = 'https://corsproxy.io/?' + encodeURIComponent(directGdriveUrl);
+    // Direct stream link Hugging Face milikmu
+    const url = 'https://huggingface.co/datasets/ADIADMMEDIA/CER/resolve/main/RACK%201.compressed.ply';
 
     const viewer = new GaussianSplats3D.Viewer({
       'cameraUp': [0, -1, 0],
@@ -75,7 +71,7 @@
       'selfManaged': true
     });
 
-    viewer.addSplatScene(finalUrl, {
+    viewer.addSplatScene(url, {
       'splatAlphaRemovalThreshold': 5,
       'showLoadingUI': true
     }).then(() => {
@@ -83,7 +79,7 @@
       viewer.start();
     }).catch((err) => {
       console.error(err);
-      document.getElementById('loading').innerText = 'Gagal memuat file. Pastikan izin akses GDrive sudah Public.';
+      document.getElementById('loading').innerText = 'Gagal memuat model. Silakan coba refresh.';
     });
   </script>
 
