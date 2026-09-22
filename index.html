@@ -34,55 +34,24 @@
       z-index: 10;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
-    #loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #00d2ff;
-      font-size: 16px;
-      font-weight: bold;
-      pointer-events: none;
-      z-index: 20;
-    }
   </style>
+
+  <!-- Viewer SuperSplat Resmi (Mendukung PLY & SPLAT) -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@playcanvas/supersplat/dist/supersplat.js"></script>
 </head>
 <body>
 
-  <div id="loading">Sedang Mengunduh Model 3DGS...</div>
+  <!-- Panggil asset release via jsDelivr CDN (Fast & CORS Allowed) -->
+  <supersplat-viewer 
+    id="viewer" 
+    src="https://cdn.jsdelivr.net/gh/adiemweb/CER_TOUR@CER/RACK.1.compressed.ply">
+  </supersplat-viewer>
 
   <div class="controls-card">
     <b>Kontrol Navigasi</b><br>
     🖥️ <b>Desktop:</b> Klik Kiri (Rotasi) | Scroll (Zoom) | Klik Kanan (Pan)<br>
     📱 <b>Mobile:</b> 1 Jari (Rotasi) | 2 Jari (Zoom & Geser)
   </div>
-
-  <script type="module">
-    import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splat-3d@0.4.2/build/gaussian-splats-3d.module.js';
-
-    // Menggunakan URL direct asset rilis GitHub tanpa redirect
-    const assetUrl = 'https://github.com/adiemweb/CER_TOUR/releases/download/CER/RACK.1.compressed.ply';
-    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(assetUrl);
-
-    const viewer = new GaussianSplats3D.Viewer({
-      'cameraUp': [0, -1, 0],
-      'initialCameraPosition': [0, 0, 3],
-      'initialCameraLookAt': [0, 0, 0],
-      'rootElement': document.body,
-      'selfManaged': true
-    });
-
-    viewer.addSplatScene(proxyUrl, {
-      'splatAlphaRemovalThreshold': 5,
-      'showLoadingUI': true
-    }).then(() => {
-      document.getElementById('loading').style.display = 'none';
-      viewer.start();
-    }).catch((err) => {
-      console.error(err);
-      document.getElementById('loading').innerText = 'Gagal memuat. Silakan tekan Ctrl+F5.';
-    });
-  </script>
 
 </body>
 </html>
