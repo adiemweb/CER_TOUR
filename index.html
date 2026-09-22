@@ -54,7 +54,6 @@
 <body>
 
   <div id="loading">Memuat Model 3DGS...</div>
-  <canvas id="canvas"></canvas>
 
   <div class="controls-card">
     <b>Kontrol Navigasi</b><br>
@@ -62,11 +61,14 @@
     📱 <b>Mobile:</b> 1 Jari (Rotasi) | 2 Jari (Zoom & Geser)
   </div>
 
-  <!-- Load WebGL Splat Viewer Engine -->
   <script type="module">
     import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splat-3d@0.4.2/build/gaussian-splats-3d.module.js';
 
-    const url = 'https://corsproxy.io/?' + encodeURIComponent('https://github.com/adiemweb/CER_TOUR/releases/download/CER/RACK.1.compressed.ply');
+    // Direct stream link dari raw media asset GitHub Releases tanpa proxy
+    const url = 'https://media.githubusercontent.com/media/adiemweb/CER_TOUR/main/RACK.1.compressed.ply'; 
+    
+    // Cadangan link langsung jika link media di atas tidak dipakai
+    const fallbackUrl = 'https://github.com/adiemweb/CER_TOUR/releases/download/CER/RACK.1.compressed.ply';
 
     const viewer = new GaussianSplats3D.Viewer({
       'cameraUp': [0, -1, 0],
@@ -76,15 +78,15 @@
       'selfManaged': true
     });
 
-    viewer.addSplatScene(url, {
+    viewer.addSplatScene(fallbackUrl, {
       'splatAlphaRemovalThreshold': 5,
-      'showLoadingUI': false
+      'showLoadingUI': true
     }).then(() => {
       document.getElementById('loading').style.display = 'none';
       viewer.start();
     }).catch((err) => {
-      document.getElementById('loading').innerText = 'Gagal memuat model. Coba refresh kembali.';
       console.error(err);
+      document.getElementById('loading').innerText = 'Gagal memuat. Tekan Ctrl+Shift+R.';
     });
   </script>
 
