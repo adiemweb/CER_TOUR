@@ -2,8 +2,10 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Virtual Tour Server Room</title>
+  <!-- Nipple.js Library untuk Joystick -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -22,40 +24,79 @@
       height: 100vh;
       border: none;
       display: block;
+      touch-action: none;
+    }
+    /* Zona Touch Joystick di Layar Kiri Bawah */
+    #joystick-zone {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      width: 120px;
+      height: 120px;
+      z-index: 20;
     }
     .controls-card {
       position: absolute;
-      bottom: 20px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(18, 18, 18, 0.85);
       backdrop-filter: blur(8px);
       color: #ffffff;
-      padding: 12px 20px;
-      border-radius: 12px;
+      padding: 8px 16px;
+      border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 13px;
+      font-size: 12px;
       text-align: center;
       pointer-events: none;
       z-index: 10;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
   </style>
 </head>
 <body>
 
-  <!-- Iframe Embed SuperSplat Responsive -->
+  <div class="controls-card">
+    🕹️ <b>Gunakan Joystick di kiri bawah untuk jalan</b>
+  </div>
+
+  <!-- Viewer SuperSplat -->
   <iframe 
     id="viewer" 
     allow="fullscreen; xr-spatial-tracking" 
     src="https://superspl.at/s?id=0e5be310">
   </iframe>
 
-  <div class="controls-card">
-    <b>Kontrol Navigasi</b><br>
-    🖥️ <b>Desktop:</b> Klik Kiri (Rotasi) | Scroll (Zoom) | Klik Kanan (Pan)<br>
-    📱 <b>Mobile:</b> 1 Jari (Rotasi) | 2 Jari (Zoom & Geser)
-  </div>
+  <!-- Kontainer Joystick -->
+  <div id="joystick-zone"></div>
+
+  <script>
+    const iframe = document.getElementById('viewer');
+
+    // Inisialisasi Virtual Joystick
+    const manager = nipplejs.create({
+      zone: document.getElementById('joystick-zone'),
+      mode: 'static',
+      position: { left: '60px', bottom: '60px' },
+      color: 'white',
+      size: 100
+    });
+
+    // Mengirimkan event gerak dari Joystick ke iframe
+    manager.on('move', function (evt, data) {
+      if (!data.vector) return;
+
+      const x = data.vector.x;
+      const y = data.vector.y;
+
+      // Kirim pesan pergerakan ke iframe SuperSplat
+      iframe.contentWindow.postMessage({
+        type: 'joystick-move',
+        x: x,
+        y: y
+      }, '*');
+    });
+  </script>
 
 </body>
 </html>
