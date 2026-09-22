@@ -14,8 +14,13 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #000;
+      background-color: #050505;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    #viewer-container {
+      width: 100vw;
+      height: 100vh;
+      display: block;
     }
     .controls-card {
       position: absolute;
@@ -34,54 +39,24 @@
       z-index: 10;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
-    #loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #00d2ff;
-      font-size: 16px;
-      font-weight: bold;
-      pointer-events: none;
-      z-index: 20;
-    }
   </style>
+
+  <!-- SuperSplat Viewer Web Component -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@playcanvas/supersplat/dist/supersplat.js"></script>
 </head>
 <body>
 
-  <div id="loading">Memuat Model 3DGS...</div>
+  <!-- Direct Stream Hugging Face (File: rack.ply) -->
+  <supersplat-viewer 
+    id="viewer-container" 
+    src="https://huggingface.co/datasets/ADIADMMEDIA/CER/resolve/main/rack.ply">
+  </supersplat-viewer>
 
   <div class="controls-card">
     <b>Kontrol Navigasi</b><br>
     🖥️ <b>Desktop:</b> Klik Kiri (Rotasi) | Scroll (Zoom) | Klik Kanan (Pan)<br>
     📱 <b>Mobile:</b> 1 Jari (Rotasi) | 2 Jari (Zoom & Geser)
   </div>
-
-  <script type="module">
-    import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splat-3d@0.4.2/build/gaussian-splats-3d.module.js';
-
-    // Direct stream link Hugging Face milikmu
-    const url = 'https://huggingface.co/datasets/ADIADMMEDIA/CER/resolve/main/RACK%201.compressed.ply';
-
-    const viewer = new GaussianSplats3D.Viewer({
-      'cameraUp': [0, -1, 0],
-      'initialCameraPosition': [0, 0, 3],
-      'initialCameraLookAt': [0, 0, 0],
-      'rootElement': document.body,
-      'selfManaged': true
-    });
-
-    viewer.addSplatScene(url, {
-      'splatAlphaRemovalThreshold': 5,
-      'showLoadingUI': true
-    }).then(() => {
-      document.getElementById('loading').style.display = 'none';
-      viewer.start();
-    }).catch((err) => {
-      console.error(err);
-      document.getElementById('loading').innerText = 'Gagal memuat model. Silakan coba refresh.';
-    });
-  </script>
 
 </body>
 </html>
