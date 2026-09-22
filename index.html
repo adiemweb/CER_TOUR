@@ -17,11 +17,6 @@
       background-color: #000;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    #canvas {
-      width: 100vw;
-      height: 100vh;
-      display: block;
-    }
     .controls-card {
       position: absolute;
       bottom: 20px;
@@ -44,16 +39,17 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #fff;
+      color: #00d2ff;
       font-size: 16px;
       font-weight: bold;
       pointer-events: none;
+      z-index: 20;
     }
   </style>
 </head>
 <body>
 
-  <div id="loading">Memuat Model 3DGS...</div>
+  <div id="loading">Sedang Mengunduh Model 3DGS...</div>
 
   <div class="controls-card">
     <b>Kontrol Navigasi</b><br>
@@ -64,21 +60,19 @@
   <script type="module">
     import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splat-3d@0.4.2/build/gaussian-splats-3d.module.js';
 
-    // Direct stream link dari raw media asset GitHub Releases tanpa proxy
-    const url = 'https://media.githubusercontent.com/media/adiemweb/CER_TOUR/main/RACK.1.compressed.ply'; 
-    
-    // Cadangan link langsung jika link media di atas tidak dipakai
-    const fallbackUrl = 'https://github.com/adiemweb/CER_TOUR/releases/download/CER/RACK.1.compressed.ply';
+    // Menggunakan URL direct asset rilis GitHub tanpa redirect
+    const assetUrl = 'https://github.com/adiemweb/CER_TOUR/releases/download/CER/RACK.1.compressed.ply';
+    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(assetUrl);
 
     const viewer = new GaussianSplats3D.Viewer({
       'cameraUp': [0, -1, 0],
-      'initialCameraPosition': [0, 0, 2.5],
+      'initialCameraPosition': [0, 0, 3],
       'initialCameraLookAt': [0, 0, 0],
       'rootElement': document.body,
       'selfManaged': true
     });
 
-    viewer.addSplatScene(fallbackUrl, {
+    viewer.addSplatScene(proxyUrl, {
       'splatAlphaRemovalThreshold': 5,
       'showLoadingUI': true
     }).then(() => {
@@ -86,7 +80,7 @@
       viewer.start();
     }).catch((err) => {
       console.error(err);
-      document.getElementById('loading').innerText = 'Gagal memuat. Tekan Ctrl+Shift+R.';
+      document.getElementById('loading').innerText = 'Gagal memuat. Silakan tekan Ctrl+F5.';
     });
   </script>
 
